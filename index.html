@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Typing Practice</title>
+
+<style>
+:root {
+  --bg: #EEEEEE;
+  --accent1: #DDAED3;
+  --accent2: #6594B1;
+  --accent3: #213C51;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--accent3);
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.container {
+  max-width: 900px;
+  width: 100%;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+select, button {
+  padding: 8px 12px;
+  border: none;
+  background: var(--accent2);
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.paragraph-box {
+  background: white;
+  border: 2px solid var(--accent1);
+  padding: 15px;
+  min-height: 120px;
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.paragraph-box span.correct {
+  color: var(--accent2);
+}
+
+.paragraph-box span.incorrect {
+  color: red;
+}
+
+textarea {
+  width: 100%;
+  height: 140px;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid var(--accent1);
+  border-radius: 4px;
+  resize: none;
+}
+
+.results {
+  margin-top: 20px;
+  background: white;
+  padding: 15px;
+  border: 2px solid var(--accent1);
+  display: none;
+}
+
+.results h3 {
+  margin-top: 0;
+}
+
+.error-word {
+  color: red;
+  margin-right: 8px;
+}
+
+@media (max-width: 600px) {
+  textarea {
+    height: 120px;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="controls">
+    <select id="wordCount">
+      <option value="100">100 Words</option>
+      <option value="200">200 Words</option>
+      <option value="300">300 Words</option>
+    </select>
+    <button onclick="generateParagraph()">Start</button>
+  </div>
+
+  <div id="paragraph" class="paragraph-box"></div>
+
+  <textarea id="typingArea" placeholder="Start typing here..." disabled></textarea>
+
+  <div id="results" class="results">
+    <h3>Incorrect Words</h3>
+    <div id="errorWords"></div>
+  </div>
+
+</div>
+
+<script>
+const wordPool = [
+  "time","people","way","life","day","work","world","school","state","family",
+  "student","group","country","problem","hand","part","place","case","week",
+  "company","system","program","question","government","number","night",
+  "point","home","water","room","mother","area","money","story","fact",
+  "month","lot","right","study","book","eye","job","word","business","issue",
+  "side","kind","head","house","service","friend","father","power","hour",
+  "game","line","end","member","law","car","city","community","name","president",
+  "team","minute","idea","kid","body","information","back","parent","face",
+  "others","level","office","door","health","person","art","war","history"
+];
+
+let targetText = [];
+let errors = new Set();
+
+function generateParagraph() {
+  const count = parseInt(document.getElementById("wordCount").value);
+  targetText = [];
+  errors.clear();
+
+  for (let i = 0; i < count; i++) {
+    const word = wordPool[Math.floor(Math.random() * wordPool.length)];
+    targetText.push(word);
+  }
+
+  renderParagraph("");
+  document.getElementById("typingArea").value = "";
+  document.getElementById("typingArea").disabled = false;
+  document.getElementById("typingArea").focus();
+  document.getElementById("results").style.display = "none";
+}
+
+function renderParagraph(input) {
+  const paragraphDiv = document.getElementById("paragraph");
+  paragraphDiv.innerHTML = "";
+
+  const fullText = targetText.join(" ");
+  for (let i = 0; i < fullText.length; i++) {
+    const span = document.createElement("span");
+    span.textContent = fullText[i];
+
+    if (i < input.length) {
+      if (input[i] === fullText[i]) {
+        span.classList.add("correct");
+      } else {
+        span.classList.add("incorrect");
+      }
+    }
+
+    paragraphDiv.appendChild(span);
+  }
+}
+
+document.getElementById("typingArea").addEventListener("input", (e) => {
+  const input = e.target.value;
+  const fullText = targetText.join(" ");
+
+  renderParagraph(input);
+
+  const inputWords = input.trim().split(/\s+/);
+  const targetWords = targetText;
+
+  inputWords.forEach((word, i) => {
+    if (targetWords[i] && word !== targetWords[i]) {
+      errors.add(targetWords[i]);
+    }
+  });
+
+  if (input.length >= fullText.length) {
+    finishTest();
+  }
+});
+
+function finishTest() {
+  document.getElementById("typingArea").disabled = true;
+  const resultsDiv = document.getElementById("results");
+  const errorWordsDiv = document.getElementById("errorWords");
+
+  errorWordsDiv.innerHTML = "";
+
+  if (errors.size === 0) {
+    errorWordsDiv.textContent = "No errors 🎉";
+  } else {
+    errors.forEach(word => {
+      const span = document.createElement("span");
+      span.textContent = word;
+      span.classList.add("error-word");
+      errorWordsDiv.appendChild(span);
+    });
+  }
+
+  resultsDiv.style.display = "block";
+}
+</script>
+</body>
+</html>
